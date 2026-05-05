@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bình Chọn A3 – Lean Summit 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg:      #08091A;
+  --surface: #0F1128;
+  --card:    #131530;
+  --border:  rgba(255,255,255,0.07);
+  --gold:    #F5C842;
+  --gold2:   #E6A817;
+  --white:   #F0F0FF;
+  --muted:   rgba(240,240,255,0.38);
+  --radius:  16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+/* ── BACKGROUND GLOW ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 0%, rgba(100,80,255,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 90% 100%, rgba(245,200,66,0.07) 0%, transparent 70%);
+}
+
+.wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 20px 80px}
+
+/* ── HEADER ── */
+header{text-align:center;padding:52px 20px 36px}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.28);
+  border-radius:99px;padding:5px 16px;font-size:10.5px;font-weight:600;
+  color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(30px,5.5vw,58px);font-weight:400;line-height:1.05;margin-bottom:12px}
+h1 em{font-style:italic;color:var(--gold)}
+.sub{font-size:14px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.7}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:22px
+}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-status{font-size:12px;color:rgba(255,255,255,0.55);font-weight:500}
+.tb-count{font-size:12px;color:var(--gold);font-weight:700;background:rgba(245,200,66,0.1);padding:3px 12px;border-radius:99px}
+.tb-right{display:flex;gap:8px;align-items:center}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-family:'Lexend',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
+.btn-excel{background:linear-gradient(135deg,#1D6F42,#2d9e5f);color:#fff}
+.btn-excel:hover{background:linear-gradient(135deg,#166135,#228a4f);transform:translateY(-1px);box-shadow:0 6px 20px rgba(29,111,66,0.4)}
+.btn-reset{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1)}
+.btn-reset:hover{color:#f87171;border-color:#f87171}
+
+/* ── NOTICE ── */
+.notice{background:rgba(245,200,66,0.06);border:1px dashed rgba(245,200,66,0.22);border-radius:11px;padding:13px 20px;margin-bottom:28px;font-size:13px;color:rgba(255,255,255,0.65);text-align:center;line-height:1.7}
+.notice strong{color:var(--gold)}
+
+/* ── REALTIME BADGE ── */
+.rt-banner{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px;font-size:12px;color:rgba(255,255,255,0.4)}
+.rt-banner span{width:40px;height:1px;background:var(--border)}
+.rt-banner b{color:#4ade80;font-weight:600}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:40px}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;position:relative;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s,border-color .25s
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 18px 48px rgba(0,0,0,.5);border-color:rgba(255,255,255,0.14)}
+.card.voted{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,200,66,.35),0 16px 40px rgba(245,200,66,.12)}
+.card-top-bar{height:4px;background:var(--ac);transition:height .25s}
+.card:hover .card-top-bar,.card.voted .card-top-bar{height:5px}
+
+.card-head{padding:18px 18px 12px;display:flex;align-items:flex-start;gap:12px}
+.num{width:38px;height:38px;border-radius:10px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:17px;color:#fff;flex-shrink:0}
+.info{flex:1;min-width:0}
+.cname{font-size:13px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:2px}
+.csub{font-size:10.5px;color:var(--muted)}
+.chk{width:24px;height:24px;border-radius:50%;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;animation:pop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.card.voted .chk{display:flex}
+
+.card-body{padding:0 18px 18px}
+
+/* vote bar */
+.vsec{border-top:1px solid rgba(255,255,255,.06);padding-top:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.vbar-wrap{flex:1}
+.vbar-label{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:5px}
+.vbar-label b{color:var(--gold);font-size:12px}
+.vbar-track{height:7px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.vbar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--ac),var(--gold));width:0;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.vbtn{flex-shrink:0;padding:8px 15px;border-radius:9px;border:1.5px solid var(--ac);background:transparent;color:var(--white);font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.vbtn:hover{background:var(--ac)}
+.card.voted .vbtn{background:var(--gold);border-color:var(--gold);color:#0F1128;pointer-events:none}
+
+/* comment */
+.csec{border-top:1px solid rgba(255,255,255,.06);padding-top:13px}
+.clabel{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:9px}
+.cinput-row{display:flex;gap:7px;margin-bottom:10px}
+.cinput{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 12px;font-family:'Lexend',sans-serif;font-size:12px;color:var(--white);resize:none;outline:none;transition:border-color .2s;min-height:36px}
+.cinput::placeholder{color:rgba(255,255,255,.2)}
+.cinput:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
+.csend{flex-shrink:0;width:36px;height:36px;border-radius:9px;background:var(--ac);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;transition:opacity .2s}
+.csend:hover{opacity:.8}
+.clist{display:flex;flex-direction:column;gap:6px;max-height:170px;overflow-y:auto}
+.clist::-webkit-scrollbar{width:3px}
+.clist::-webkit-scrollbar-thumb{background:rgba(245,200,66,.25);border-radius:99px}
+.ci{background:rgba(255,255,255,.04);border-radius:9px;padding:8px 11px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.ci-meta{display:flex;justify-content:space-between;margin-bottom:3px}
+.ci-author{font-size:10px;font-weight:700;color:var(--gold2)}
+.ci-time{font-size:10px;color:rgba(255,255,255,.22)}
+.ci-text{font-size:12px;color:rgba(255,255,255,.75);line-height:1.5}
+.ci-like{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);cursor:pointer;font-size:11px;color:rgba(255,255,255,.3);transition:all .2s;font-family:'Lexend',sans-serif}
+.ci-like:hover,.ci-like.on{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.3);color:var(--gold)}
+.no-c{font-size:11px;color:rgba(255,255,255,.18);text-align:center;padding:8px 0;font-style:italic}
+
+/* ── RESULTS ── */
+.panel{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:18px;padding:26px;margin-bottom:24px}
+.ptitle{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--white);margin-bottom:18px}
+
+.rrow{display:flex;align-items:center;gap:12px;margin-bottom:9px;padding:10px 13px;border-radius:11px;background:rgba(255,255,255,.025);transition:background .2s}
+.rrow:hover{background:rgba(255,255,255,.045)}
+.rrank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.r1{background:var(--gold);color:#0F1128}.r2{background:#C0C0C0;color:#222}.r3{background:#CD7F32;color:#fff}.ro{background:rgba(255,255,255,.07);color:rgba(255,255,255,.35);font-size:11px}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:12.5px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:10px;color:var(--muted)}
+.rvotes{font-family:'DM Serif Display',serif;font-size:20px;color:var(--gold);min-width:24px;text-align:right}
+.rvotes span{font-family:'Lexend',sans-serif;font-size:10px;color:rgba(255,255,255,.3);font-weight:400}
+.rpct{font-size:11px;color:rgba(255,255,255,.3);min-width:32px;text-align:right}
+
+/* ── WINNER ── */
+.winner{display:none;background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(230,168,23,.06));border:1.5px solid rgba(245,200,66,.3);border-radius:15px;padding:20px 24px;margin-bottom:24px;text-align:center;animation:fadeUp .5s ease}
+.winner.on{display:block}
+.wl{font-size:10px;color:var(--gold2);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:5px}
+.wn{font-family:'DM Serif Display',serif;font-size:22px;color:var(--gold);margin-bottom:3px;line-height:1.3}
+.ws{font-size:12px;color:rgba(255,255,255,.38)}
+
+/* ── WALL ── */
+.wtabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.wtab{padding:5px 13px;border-radius:99px;font-size:11px;font-weight:600;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:'Lexend',sans-serif;transition:all .2s}
+.wtab.on{color:#0F1128;background:var(--gold);border-color:var(--gold)}
+.wtab:hover:not(.on){border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.75)}
+.wlist{display:flex;flex-direction:column;gap:9px}
+.wi{background:rgba(255,255,255,.035);border-radius:11px;padding:12px 14px;border-left:3px solid var(--wac);animation:fadeUp .3s ease}
+.wi-meta{display:flex;gap:8px;align-items:center;margin-bottom:5px;flex-wrap:wrap}
+.wi-badge{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;background:var(--wac)}
+.wi-author{font-size:10px;color:rgba(255,255,255,.35)}
+.wi-time{font-size:10px;color:rgba(255,255,255,.2);margin-left:auto}
+.wi-text{font-size:13px;color:rgba(255,255,255,.78);line-height:1.55}
+.wempty{text-align:center;font-size:13px;color:rgba(255,255,255,.2);padding:28px 0;font-style:italic}
+
+/* ── EXCEL EXPORT PANEL ── */
+.export-panel{background:linear-gradient(135deg,rgba(29,111,66,.12),rgba(29,111,66,.06));border:1px solid rgba(29,111,66,.3);border-radius:15px;padding:22px 24px;margin-bottom:24px}
+.export-title{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:#4ade80;margin-bottom:14px}
+.export-desc{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:16px;line-height:1.6}
+.export-btns{display:flex;gap:10px;flex-wrap:wrap}
+.ebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;font-family:'Lexend',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.ebtn-full{background:linear-gradient(135deg,#1D6F42,#2d9e5f);color:#fff}
+.ebtn-full:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(29,111,66,.45)}
+.ebtn-vote{background:rgba(245,200,66,.15);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
+.ebtn-vote:hover{background:rgba(245,200,66,.25)}
+.ebtn-cmts{background:rgba(100,120,255,.15);color:#a5b4fc;border:1px solid rgba(100,120,255,.3)}
+.ebtn-cmts:hover{background:rgba(100,120,255,.25)}
+
+footer{text-align:center;font-size:11px;color:rgba(255,255,255,.15);padding-top:16px;border-top:1px solid var(--border);letter-spacing:.5px}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:#0F1128;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,.35);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;z-index:999;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden}
+.cp{position:absolute;opacity:0;animation:cf 2s ease-out forwards}
+@keyframes cf{0%{opacity:1;transform:translateY(-20px) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.toolbar{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="confetti-wrap" id="confettiWrap"></div>
+<div class="wrap">
+
+<header>
+  <div class="badge"><span class="live-dot"></span>LIVE · Lean Summit · Hansei Competition 2026</div>
+  <h1>Bình chọn <em>A3</em><br>Yêu thích nhất</h1>
+  <p class="sub">Bình chọn realtime · Nhiều người cùng lúc · Kết quả cập nhật tức thì</p>
+</header>
+
+<div class="toolbar">
+  <div class="tb-left">
+    <div class="live-dot"></div>
+    <span class="tb-status">Đang kết nối realtime</span>
+    <span class="tb-count" id="totalDisplay">0 lượt bình chọn</span>
+  </div>
+  <div class="tb-right">
+    <button class="btn btn-excel" onclick="exportFull()">📥 Xuất Excel</button>
+    <button class="btn btn-reset" onclick="doReset()">↺ Đặt lại</button>
+  </div>
+</div>
+
+<div class="notice">
+  👆 <strong>Bước 1:</strong> Nhấn <strong>Bình chọn</strong> cho công ty bạn ấn tượng nhất &nbsp;·&nbsp;
+  💬 <strong>Bước 2:</strong> Viết cảm nhận về điều bạn yêu thích &nbsp;·&nbsp;
+  <strong>Kết quả cập nhật realtime cho tất cả mọi người</strong>
+</div>
+
+<div class="rt-banner"><span></span><b>🟢 REALTIME</b> – Mọi bình chọn & cảm nhận cập nhật ngay lập tức<span></span></div>
+
+<div class="grid" id="grid"></div>
+
+<div class="winner" id="winner">
+  <div class="wl">🏆 Đang dẫn đầu</div>
+  <div class="wn" id="wname">—</div>
+  <div class="ws" id="wsub"></div>
+</div>
+
+<div class="panel">
+  <div class="ptitle"><span>📊</span><span>Bảng xếp hạng realtime</span></div>
+  <div id="rankList"></div>
+</div>
+
+<div class="export-panel">
+  <div class="export-title">📥 Xuất dữ liệu ra Excel</div>
+  <div class="export-desc">Tải toàn bộ dữ liệu bình chọn và cảm nhận của khán giả ra file .xlsx để lưu trữ và phân tích.</div>
+  <div class="export-btns">
+    <button class="ebtn ebtn-full" onclick="exportFull()">📊 Xuất tất cả dữ liệu</button>
+    <button class="ebtn ebtn-vote" onclick="exportVotes()">🏆 Chỉ kết quả bình chọn</button>
+    <button class="ebtn ebtn-cmts" onclick="exportComments()">💬 Chỉ cảm nhận khán giả</button>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="ptitle"><span>🗣️</span><span>Tường cảm nhận khán giả</span></div>
+  <div class="wtabs" id="wtabs"></div>
+  <div class="wlist" id="wlist"></div>
+</div>
+
+<footer>LEAN SUMMIT · MẠNG LƯỚI CHUYỂN ĐỔI LEAN · System Hansei & Học Tập Liên Tục 2026</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  FIREBASE CONFIG  – dùng project demo public (read/write open)
+//  Bạn có thể thay bằng Firebase project riêng của mình
+// ══════════════════════════════════════════════════════════════
+const FB_CONFIG = {
+  apiKey: "AIzaSyDemo_replace_with_your_key",
+  authDomain: "lean-summit-vote.firebaseapp.com",
+  databaseURL: "https://lean-summit-vote-default-rtdb.firebaseio.com",
+  projectId: "lean-summit-vote",
+};
+
+// ── TEAMS ──────────────────────────────────────────────────────
+const TEAMS = [
+  { name: 'Công ty TNHH Nhựa An Phú Việt',                                 short: 'An Phú Việt' },
+  { name: 'Công ty CP TECHNOKOM',                                            short: 'TECHNOKOM' },
+  { name: 'Công ty CP Sản xuất Phụ tùng Ô tô & Thiết bị Công nghiệp JAT', short: 'JAT' },
+  { name: 'Công ty CP Công nghiệp JK Việt Nam',                             short: 'JK Việt Nam' },
+  { name: 'Công ty CP Chính xác TCI (TCI Precision)',                       short: 'TCI Precision' },
+];
+const ACS = ['#2563EB','#16A34A','#0E7490','#EA580C','#7C3AED'];
+
+// ── STATE ──────────────────────────────────────────────────────
+let votes    = {};   // {0:n, 1:n, ...}
+let comments = {};   // {0:[...], 1:[...], ...}
+let hasVoted = false;
+let myVote   = null;
+let wFilter  = 'all';
+let likedIds = new Set();
+const guestId   = 'Khách ' + Math.floor(Math.random()*9000+1000);
+
+// ── INIT STATE ─────────────────────────────────────────────────
+TEAMS.forEach((_,i) => { votes[i] = 0; comments[i] = []; });
+
+// ══════════════════════════════════════════════════════════════
+//  STORAGE LAYER  – tự động chọn Firebase hoặc localStorage
+//  (localStorage đồng bộ trên cùng 1 tab; Firebase đa thiết bị)
+// ══════════════════════════════════════════════════════════════
+let db = null;
+let useFirebase = false;
+
+function tryFirebase() {
+  try {
+    firebase.initializeApp(FB_CONFIG);
+    db = firebase.database();
+    // test write
+    db.ref('.info/connected').on('value', snap => {
+      if (snap.val() === true) {
+        useFirebase = true;
+        document.querySelector('.tb-status').textContent = '🟢 Kết nối realtime Firebase';
+        subscribeFirebase();
+      }
+    });
+    // timeout fallback
+    setTimeout(() => {
+      if (!useFirebase) activateLocalMode();
+    }, 3000);
+  } catch(e) {
+    activateLocalMode();
+  }
+}
+
+// ── FIREBASE SUBSCRIBE ─────────────────────────────────────────
+function subscribeFirebase() {
+  // votes
+  db.ref('votes2026').on('value', snap => {
+    const v = snap.val() || {};
+    TEAMS.forEach((_,i) => { votes[i] = v[i] || 0; });
+    syncAll();
+  });
+  // comments
+  db.ref('comments2026').on('value', snap => {
+    const raw = snap.val() || {};
+    TEAMS.forEach((_,i) => {
+      const teamCmts = raw[i] ? Object.values(raw[i]) : [];
+      teamCmts.sort((a,b) => b.ts - a.ts);
+      comments[i] = teamCmts;
+    });
+    syncAll();
+  });
+}
+
+// ── LOCAL FALLBACK ─────────────────────────────────────────────
+function activateLocalMode() {
+  document.querySelector('.tb-status').textContent = '🟡 Chế độ cục bộ (offline)';
+  loadLocal();
+  // poll localStorage for other tabs
+  setInterval(() => { loadLocal(); syncAll(); }, 1500);
+}
+
+function loadLocal() {
+  try {
+    const sv = JSON.parse(localStorage.getItem('ls_votes26') || '{}');
+    TEAMS.forEach((_,i) => { votes[i] = sv[i] || 0; });
+    const sc = JSON.parse(localStorage.getItem('ls_cmts26') || '{}');
+    TEAMS.forEach((_,i) => {
+      comments[i] = sc[i] ? sc[i].sort((a,b)=>b.ts-a.ts) : [];
+    });
+    if (localStorage.getItem('ls_myvote26')) {
+      myVote = parseInt(localStorage.getItem('ls_myvote26'));
+      hasVoted = true;
+    }
+    likedIds = new Set(JSON.parse(localStorage.getItem('ls_liked26')||'[]'));
+  } catch(e){}
+}
+
+function saveLocal() {
+  localStorage.setItem('ls_votes26', JSON.stringify(votes));
+  localStorage.setItem('ls_cmts26',  JSON.stringify(comments));
+  if (myVote !== null) localStorage.setItem('ls_myvote26', String(myVote));
+  localStorage.setItem('ls_liked26', JSON.stringify([...likedIds]));
+}
+
+// ── VOTE ───────────────────────────────────────────────────────
+function castVote(i) {
+  if (hasVoted) { toast('Bạn đã bình chọn rồi! 😊'); return; }
+  hasVoted = true; myVote = i;
+
+  if (useFirebase) {
+    db.ref('votes2026/' + i).transaction(v => (v || 0) + 1);
+  } else {
+    votes[i]++;
+    saveLocal();
+    syncAll();
+  }
+  toast('✓ Đã bình chọn cho ' + TEAMS[i].short + '!');
+  boom();
+}
+
+// ── SEND COMMENT ───────────────────────────────────────────────
+function sendComment(i) {
+  const el = document.getElementById('ci' + i);
+  const txt = el.value.trim();
+  if (!txt) { toast('Hãy nhập cảm nhận trước nhé! 🙏'); return; }
+
+  const entry = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    author: guestId, text: txt,
+    time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),
+    ts: Date.now(), likes: 0, teamIdx: i, teamShort: TEAMS[i].short
+  };
+  el.value = '';
+
+  if (useFirebase) {
+    db.ref('comments2026/' + i).push(entry);
+  } else {
+    comments[i].unshift(entry);
+    saveLocal();
+    renderCardComments(i);
+    renderWall();
+  }
+  toast('✓ Cảm nhận đã được ghi lại!');
+}
+
+// ── LIKE ───────────────────────────────────────────────────────
+function likeComment(teamIdx, id) {
+  const already = likedIds.has(id);
+  const delta = already ? -1 : 1;
+  if (already) likedIds.delete(id); else likedIds.add(id);
+
+  if (useFirebase) {
+    const cRef = db.ref('comments2026/' + teamIdx);
+    cRef.once('value', snap => {
+      const all = snap.val() || {};
+      const key = Object.keys(all).find(k => all[k].id === id);
+      if (key) db.ref('comments2026/' + teamIdx + '/' + key + '/likes').transaction(v => Math.max(0, (v||0) + delta));
+    });
+  } else {
+    const c = comments[teamIdx].find(x=>x.id===id);
+    if (c) { c.likes = Math.max(0, (c.likes||0)+delta); }
+    saveLocal();
+    renderCardComments(teamIdx);
+    renderWall();
+  }
+}
+
+// ── SYNC ALL ───────────────────────────────────────────────────
+function syncAll() {
+  updateToolbar();
+  updateCards();
+  updateRanking();
+  renderWall();
+}
+
+function updateToolbar() {
+  const total = TEAMS.reduce((_,__,i) => _ + (votes[i]||0), 0);
+  document.getElementById('totalDisplay').textContent = total + ' lượt bình chọn';
+}
+
+// ── RENDER CARDS ───────────────────────────────────────────────
+let cardsBuilt = false;
+function buildCards() {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  TEAMS.forEach((team, i) => {
+    const ac = ACS[i % ACS.length];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'card' + i;
+    card.style.setProperty('--ac', ac);
+    card.innerHTML = `
+      <div class="card-top-bar"></div>
+      <div class="card-head">
+        <div class="num">${i+1}</div>
+        <div class="info">
+          <div class="cname">${esc(team.name)}</div>
+          <div class="csub">Báo cáo A3 Hansei 2026</div>
+        </div>
+        <div class="chk">✓</div>
+      </div>
+      <div class="card-body">
+        <div class="vsec">
+          <div class="vbar-wrap">
+            <div class="vbar-label"><span>Bình chọn</span><b id="vc${i}">0</b></div>
+            <div class="vbar-track"><div class="vbar-fill" id="vb${i}"></div></div>
+          </div>
+          <button class="vbtn" id="vbtn${i}" onclick="castVote(${i})">👍 Bình chọn</button>
+        </div>
+        <div class="csec">
+          <div class="clabel">💬 Điều bạn yêu thích về báo cáo này</div>
+          <div class="cinput-row">
+            <textarea class="cinput" id="ci${i}" rows="1"
+              placeholder="Chia sẻ cảm nhận, điểm ấn tượng, bài học…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendComment(${i})}"></textarea>
+            <button class="csend" style="background:${ac}" onclick="sendComment(${i})">➤</button>
+          </div>
+          <div class="clist" id="cl${i}"><div class="no-c">Chưa có cảm nhận ✨</div></div>
+        </div>
+      </div>`;
+    g.appendChild(card);
+  });
+  cardsBuilt = true;
+}
+
+function updateCards() {
+  if (!cardsBuilt) buildCards();
+  const total = TEAMS.reduce((_,__,i)=>_+(votes[i]||0), 0);
+  TEAMS.forEach((_, i) => {
+    const card = document.getElementById('card' + i);
+    if (!card) return;
+    const voted = (myVote === i);
+    card.className = 'card' + (voted ? ' voted' : '');
+
+    const vc = document.getElementById('vc' + i);
+    const vb = document.getElementById('vb' + i);
+    const vbtn = document.getElementById('vbtn' + i);
+    if (vc) vc.textContent = votes[i] || 0;
+    if (vb) vb.style.width = total > 0 ? ((votes[i]||0)/total*100)+'%' : '0%';
+    if (vbtn) vbtn.textContent = voted ? '✓ Đã chọn' : '👍 Bình chọn';
+
+    renderCardComments(i);
+  });
+}
+
+function renderCardComments(i) {
+  const el = document.getElementById('cl' + i);
+  if (!el) return;
+  const list = comments[i] || [];
+  if (!list.length) { el.innerHTML = '<div class="no-c">Chưa có cảm nhận ✨</div>'; return; }
+  el.innerHTML = list.map(c => `
+    <div class="ci">
+      <div class="ci-meta"><span class="ci-author">${esc(c.author)}</span><span class="ci-time">${c.time}</span></div>
+      <div class="ci-text">${esc(c.text)}</div>
+      <button class="ci-like ${likedIds.has(c.id)?'on':''}" onclick="likeComment(${i},'${c.id}')">♥ ${c.likes||0}</button>
+    </div>`).join('');
+}
+
+// ── RANKING ────────────────────────────────────────────────────
+function updateRanking() {
+  const total = TEAMS.reduce((_,__,i)=>_+(votes[i]||0), 0);
+  const sorted = TEAMS.map((t,i)=>({...t,i,v:votes[i]||0})).sort((a,b)=>b.v-a.v);
+
+  if (total > 0 && sorted[0].v > 0) {
+    document.getElementById('winner').classList.add('on');
+    document.getElementById('wname').textContent = sorted[0].name;
+    document.getElementById('wsub').textContent = sorted[0].v + ' phiếu · ' + Math.round(sorted[0].v/total*100) + '%';
+  } else {
+    document.getElementById('winner').classList.remove('on');
+  }
+
+  const rl = document.getElementById('rankList');
+  rl.innerHTML = sorted.map((t, rank) => {
+    const pct = total > 0 ? Math.round(t.v/total*100) : 0;
+    const rc  = rank===0?'r1':rank===1?'r2':rank===2?'r3':'ro';
+    const rl2 = rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':String(rank+1);
+    const cm  = (comments[t.i]||[]).length;
+    return `<div class="rrow">
+      <div class="rrank ${rc}">${rl2}</div>
+      <div class="rinfo">
+        <div class="rname">${esc(t.name)}</div>
+        <div class="rsub">${cm} cảm nhận</div>
+      </div>
+      <div class="rvotes">${t.v}<span> phiếu</span></div>
+      <div class="rpct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+// ── WALL ───────────────────────────────────────────────────────
+function renderWall() {
+  const tabs = document.getElementById('wtabs');
+  const defs = [{k:'all',l:'Tất cả'},...TEAMS.map((t,i)=>({k:String(i),l:t.short}))];
+  tabs.innerHTML = defs.map(d=>`<button class="wtab ${wFilter===d.k?'on':''}" onclick="setWF('${d.k}')">${d.l}</button>`).join('');
+
+  let all = [];
+  TEAMS.forEach((_,i)=>{
+    (comments[i]||[]).forEach(c=>{ all.push({...c, ac:ACS[i%ACS.length]}); });
+  });
+  all.sort((a,b)=>b.ts-a.ts);
+  const filtered = wFilter==='all' ? all : all.filter(c=>String(c.teamIdx)===wFilter);
+
+  const wl = document.getElementById('wlist');
+  if (!filtered.length) { wl.innerHTML = '<div class="wempty">Chưa có cảm nhận nào.<br>Hãy chia sẻ suy nghĩ của bạn! 💬</div>'; return; }
+  wl.innerHTML = filtered.map(c=>`
+    <div class="wi" style="--wac:${c.ac};border-left-color:${c.ac}">
+      <div class="wi-meta">
+        <span class="wi-badge" style="background:${c.ac}">${esc(c.teamShort)}</span>
+        <span class="wi-author">${esc(c.author)}</span>
+        <span class="wi-time">${c.time}</span>
+      </div>
+      <div class="wi-text">${esc(c.text)}</div>
+    </div>`).join('');
+}
+function setWF(k) { wFilter=k; renderWall(); }
+
+// ══════════════════════════════════════════════════════════════
+//  EXCEL EXPORT
+// ══════════════════════════════════════════════════════════════
+function getNow() {
+  return new Date().toLocaleString('vi-VN');
+}
+
+function exportFull() {
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Kết quả bình chọn
+  const total = TEAMS.reduce((_,__,i)=>_+(votes[i]||0), 0);
+  const sorted = TEAMS.map((t,i)=>({...t,i,v:votes[i]||0})).sort((a,b)=>b.v-a.v);
+  const voteData = [
+    ['BẢNG KẾT QUẢ BÌNH CHỌN – LEAN SUMMIT 2026'],
+    ['Thời gian xuất:', getNow()],
+    ['Tổng lượt bình chọn:', total],
+    [],
+    ['Hạng','Tên công ty','Số phiếu','Tỷ lệ (%)','Số cảm nhận'],
+    ...sorted.map((t, rank) => [
+      rank+1, t.name, t.v,
+      total>0 ? (t.v/total*100).toFixed(1)+'%' : '0%',
+      (comments[t.i]||[]).length
+    ])
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(voteData);
+  ws1['!cols'] = [{wch:6},{wch:55},{wch:10},{wch:12},{wch:14}];
+  ws1['A1'].s = {font:{bold:true,sz:14}};
+  XLSX.utils.book_append_sheet(wb, ws1, 'Kết quả bình chọn');
+
+  // Sheet 2: Cảm nhận chi tiết
+  const cmtRows = [
+    ['TOÀN BỘ CẢM NHẬN KHÁN GIẢ – LEAN SUMMIT 2026'],
+    ['Thời gian xuất:', getNow()],
+    [],
+    ['STT','Công ty','Tên ngắn','Khách','Nội dung cảm nhận','Thời gian','Lượt thích']
+  ];
+  let stt = 1;
+  TEAMS.forEach((_,i) => {
+    (comments[i]||[]).forEach(c => {
+      cmtRows.push([stt++, TEAMS[i].name, TEAMS[i].short, c.author, c.text, c.time, c.likes||0]);
+    });
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(cmtRows);
+  ws2['!cols'] = [{wch:5},{wch:55},{wch:14},{wch:12},{wch:60},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Cảm nhận khán giả');
+
+  // Sheet 3: Tổng hợp theo công ty
+  const sumData = [
+    ['TỔNG HỢP THEO CÔNG TY'],
+    ['Thời gian xuất:', getNow()],
+    [],
+    ['Công ty','Phiếu bình chọn','Tỷ lệ','Số cảm nhận','Tổng lượt thích cảm nhận']
+  ];
+  TEAMS.forEach((t,i) => {
+    const cm = comments[i]||[];
+    const totalLikes = cm.reduce((a,c)=>a+(c.likes||0),0);
+    sumData.push([t.name, votes[i]||0, total>0?((votes[i]||0)/total*100).toFixed(1)+'%':'0%', cm.length, totalLikes]);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(sumData);
+  ws3['!cols'] = [{wch:55},{wch:16},{wch:10},{wch:14},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Tổng hợp');
+
+  XLSX.writeFile(wb, 'LeanSummit2026_BinhChon_' + Date.now() + '.xlsx');
+  toast('✅ Đã xuất file Excel đầy đủ!');
+}
+
+function exportVotes() {
+  const wb = XLSX.utils.book_new();
+  const total = TEAMS.reduce((_,__,i)=>_+(votes[i]||0), 0);
+  const sorted = TEAMS.map((t,i)=>({...t,i,v:votes[i]||0})).sort((a,b)=>b.v-a.v);
+  const data = [
+    ['KẾT QUẢ BÌNH CHỌN – LEAN SUMMIT 2026'],
+    ['Thời gian xuất:', getNow()],
+    [],
+    ['Hạng','Tên công ty','Số phiếu','Tỷ lệ (%)'],
+    ...sorted.map((t,rank)=>[rank+1, t.name, t.v, total>0?(t.v/total*100).toFixed(1)+'%':'0%'])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:6},{wch:55},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Kết quả bình chọn');
+  XLSX.writeFile(wb, 'LeanSummit2026_BinhChon_ChiKetQua.xlsx');
+  toast('✅ Đã xuất kết quả bình chọn!');
+}
+
+function exportComments() {
+  const wb = XLSX.utils.book_new();
+  const rows = [
+    ['CẢM NHẬN KHÁN GIẢ – LEAN SUMMIT 2026'],
+    ['Thời gian xuất:', getNow()],
+    [],
+    ['STT','Công ty','Khách','Nội dung cảm nhận','Thời gian','Lượt thích']
+  ];
+  let stt = 1;
+  TEAMS.forEach((_,i)=>{
+    (comments[i]||[]).forEach(c=>{
+      rows.push([stt++, TEAMS[i].name, c.author, c.text, c.time, c.likes||0]);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:5},{wch:55},{wch:12},{wch:60},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Cảm nhận');
+  XLSX.writeFile(wb, 'LeanSummit2026_CamNhan.xlsx');
+  toast('✅ Đã xuất file cảm nhận khán giả!');
+}
+
+// ── RESET ──────────────────────────────────────────────────────
+function doReset() {
+  if (!confirm('Đặt lại toàn bộ bình chọn và cảm nhận?\n(Không thể hoàn tác)')) return;
+  if (useFirebase) {
+    db.ref('votes2026').remove();
+    db.ref('comments2026').remove();
+  } else {
+    TEAMS.forEach((_,i)=>{ votes[i]=0; comments[i]=[]; });
+    localStorage.removeItem('ls_votes26');
+    localStorage.removeItem('ls_cmts26');
+    localStorage.removeItem('ls_myvote26');
+    localStorage.removeItem('ls_liked26');
+  }
+  hasVoted=false; myVote=null; likedIds=new Set();
+  document.getElementById('winner').classList.remove('on');
+  syncAll();
+  toast('↺ Đã đặt lại tất cả!');
+}
+
+// ── HELPERS ────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let tt;
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2800); }
+function boom(){
+  const w=document.getElementById('confettiWrap');
+  const cols=['#F5C842','#E6A817','#4ade80','#60a5fa','#f87171','#c084fc'];
+  for(let k=0;k<65;k++){
+    const el=document.createElement('div'); el.className='cp';
+    const sz=Math.random()*10+5;
+    el.style.cssText=`left:${Math.random()*100}vw;top:-20px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*.7}s;animation-duration:${1.4+Math.random()}s`;
+    w.appendChild(el); setTimeout(()=>el.remove(),3000);
+  }
+}
+
+// ── BOOT ───────────────────────────────────────────────────────
+buildCards();
+activateLocalMode();   // start with local; Firebase will override if connected
+tryFirebase();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+  HƯỚNG DẪN CÀI FIREBASE ĐỂ REALTIME THỰC SỰ:
+  
+  1. Vào https://console.firebase.google.com → Tạo project
+  2. Bật Realtime Database → chọn "Start in test mode"
+  3. Copy firebaseConfig → thay vào FB_CONFIG ở trên
+  4. Deploy hoặc mở file trên nhiều thiết bị cùng lúc → sync!
+  
+  Nếu không cài Firebase: app vẫn chạy tốt trên 1 tab/thiết bị
+  với localStorage. Để share cho nhiều người, cần Firebase.
+════════════════════════════════════════════════════════════ -->
+</body>
+</html>
